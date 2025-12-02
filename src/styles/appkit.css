@@ -1,0 +1,45 @@
+/* AppKit Custom Styles */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* AppKit Modal Theme Customization */
+[data-reown-theme="light"] {
+  --w3m-color-mix: hsl(210 100% 55%);
+  --w3m-color-mix-strength: 0%;
+  --w3m-border-radius-master: 12px;
+  --w3m-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Custom wallet connection button styles */
+.wallet-connect-btn {
+  @apply bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105;
+}
+
+/* Network indicator styles */
+.network-indicator {
+  @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+}
+
+.network-indicator.ethereum {
+  @apply bg-blue-100 text-blue-800;
+}
+
+.network-indicator.sepolia {
+  @apply bg-orange-100 text-orange-800;
+}
+
+.network-indicator.polygon {
+  @apply bg-purple-100 text-purple-800;
+}
+
+/* Custom scrollbar for modal */
+[data-reown-modal] ::-webkit-scrollbar {
+  width: 6px;
+}
+
+[data-reown-modal] ::-webkit-scrollbar-track {
+  @apply bg-gray-100 rounded-full;
+}
+
+[data-reown-modal] ::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 rounded-full hover:bg-gray-400;
+}

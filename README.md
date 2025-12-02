@@ -17,7 +17,7 @@ Crystal Stakes is a sophisticated, elegant decentralized finance (DeFi) staking 
 - **Real-time Protocol Statistics**: Live tracking of total staked, active users, and protocol health
 - **Network Analytics**: Comprehensive data visualization through subgraph integration
 - **User Position Tracking**: Detailed individual staking positions and history
-- **Multi-wallet Support**: Seamless integration with popular Web3 wallets via RainbowKit
+- **WalletConnect Integration**: Advanced multi-wallet support with Reown AppKit for seamless Web3 connectivity
 
 ### Technical Excellence
 - **The Graph Integration**: Efficient data indexing and querying
@@ -31,7 +31,7 @@ Crystal Stakes is a sophisticated, elegant decentralized finance (DeFi) staking 
 - **React 19** with TypeScript for robust component development
 - **Vite** for lightning-fast development and optimized builds
 - **TailwindCSS** for elegant, responsive styling
-- **RainbowKit** for seamless wallet connectivity
+- **Reown AppKit** for advanced wallet connectivity with WalletConnect v2
 - **Wagmi & Viem** for Ethereum blockchain interactions
 - **Apollo Client** for GraphQL data management
 
@@ -120,6 +120,22 @@ The platform provides comprehensive analytics including:
 | **Claim Rewards** | Harvest earned rewards | Realize earnings |
 | **Emergency Withdraw** | Quick token withdrawal | Urgent liquidity needs |
 | **Mint Tokens** | Generate test tokens | Development and testing |
+
+## 🌐 WalletConnect Integration
+
+### Reown AppKit Features
+- **Advanced Wallet Connectivity**: Built with Reown AppKit for professional Web3 integration
+- **WalletConnect v2**: Latest protocol providing enhanced security and cross-chain compatibility
+- **Multi-chain Support**: Seamless switching between Ethereum, Sepolia, and Polygon networks
+- **Social Authentication**: Google, X (Twitter), GitHub, Discord, and Farcaster login options
+- **Email Authentication**: Passwordless login for improved user experience
+- **Extensive Wallet Support**: Compatible with 100+ wallets including MetaMask, Coinbase Wallet, Trust Wallet, and more
+- **Custom Branding**: Tailored UI with custom theme variables and project-specific styling
+
+### Network Support
+- **Ethereum Mainnet**: Primary network for production staking
+- **Sepolia Testnet**: Safe testing environment for development
+- **Polygon**: Layer 2 scaling solution for faster, cheaper transactions
 
 ## 🔧 Development
 
