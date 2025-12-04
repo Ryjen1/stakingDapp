@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { useWriteContract, useAccount, useReadContract } from 'wagmi';
 import { stakingContractAddress, stakingContractABI, testTokenAddress, testTokenABI } from '../lib/contracts';
 import { ethers } from 'ethers';
+import { useNotification } from './NotificationProvider';
 
 export function StakeForm() {
   const { address } = useAccount();
   const [amount, setAmount] = useState('');
   const [step, setStep] = useState<'idle' | 'approving' | 'staking'>('idle');
-  const [notification, setNotification] = useState<{type: 'success' | 'error', message: string} | null>(null);
+  const { showSuccess, showError } = useNotification();
 
   // Use the test token address directly
   const stakingToken = testTokenAddress;
@@ -33,28 +34,19 @@ export function StakeForm() {
     // Check minimum stake amount
     const stakeAmountNum = parseFloat(amount);
     if (stakeAmountNum < 50) {
-      setNotification({
-        type: 'error',
-        message: 'Minimum stake amount is 50 HAPG tokens.'
-      });
-      setTimeout(() => setNotification(null), 5000);
+      showError('Minimum Stake Amount', 'Minimum stake amount is 50 HAPG tokens.');
       return;
     }
 
     // Check if user has sufficient balance
     const stakeAmount = ethers.parseEther(amount);
     if (!userBalance || userBalance < stakeAmount) {
-      setNotification({
-        type: 'error',
-        message: `Insufficient balance. You have ${userBalance ? parseFloat(ethers.formatEther(userBalance)).toFixed(2) : '0.00'} HAPG tokens available.`
-      });
-      setTimeout(() => setNotification(null), 5000);
+      showError('Insufficient Balance', `You have ${userBalance ? parseFloat(ethers.formatEther(userBalance)).toFixed(2) : '0.00'} HAPG tokens available.`);
       return;
     }
 
     try {
       setStep('approving');
-      setNotification(null);
 
       // First, approve the contract to spend the token
       await approve({
@@ -76,47 +68,17 @@ export function StakeForm() {
 
       setStep('idle');
       setAmount('');
-      setNotification({
-        type: 'success',
-        message: `Successfully staked ${amount} HappyGurl tokens!`
-      });
-      setTimeout(() => setNotification(null), 5000);
+      showSuccess('Staking Successful!', `Successfully staked ${amount} HAPG tokens!`);
 
     } catch (error: unknown) {
       console.error('Transaction failed:', error);
       setStep('idle');
-      setNotification({
-        type: 'error',
-        message: error instanceof Error ? error.message : 'Transaction failed. Please try again.'
-      });
-      setTimeout(() => setNotification(null), 5000);
+      showError('Transaction Failed', error instanceof Error ? error.message : 'Transaction failed. Please try again.');
     }
   };
 
   return (
     <div className="space-y-4">
-      {/* Notification */}
-      {notification && (
-        <div className={`p-4 rounded-2xl border-2 ${
-          notification.type === 'success'
-            ? 'bg-green-50 border-green-200 text-green-800'
-            : 'bg-red-50 border-red-200 text-red-800'
-        }`}>
-          <div className="flex items-center">
-            <svg className={`w-5 h-5 mr-2 ${
-              notification.type === 'success' ? 'text-green-600' : 'text-red-600'
-            }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {notification.type === 'success' ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              )}
-            </svg>
-            <p className="font-medium">{notification.message}</p>
-          </div>
-        </div>
-      )}
-
       {/* Balance Display */}
       {userBalance && (
         <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
