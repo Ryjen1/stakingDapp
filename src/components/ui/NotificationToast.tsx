@@ -196,8 +196,8 @@ export const NotificationToast: React.FC<NotificationToastProps> = ({
         duration: 0.4, 
         ease: "easeInOut",
         type: "spring",
-        stiffness: 300,
-        damping: 30
+        stiffness: 260,
+        damping: 20
       }}
       role="alert"
       aria-live="polite"
