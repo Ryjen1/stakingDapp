@@ -234,11 +234,47 @@
   height: 300px;
 }
 
-/* Focus styles for accessibility */
+/* Enhanced focus styles for accessibility */
 .btn-crystal:focus {
   outline: 2px solid transparent;
   outline-offset: 2px;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+.btn-crystal:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.7);
+}
+
+/* High contrast focus for better accessibility */
+.btn-crystal-primary:focus-visible {
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.7);
+}
+
+.btn-crystal-secondary:focus-visible {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.7);
+}
+
+.btn-crystal-utility:focus-visible {
+  box-shadow: 0 0 0 2px rgba(107, 114, 128, 0.7);
+}
+
+/* Skip link for keyboard navigation */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 6px;
+  background: rgba(0, 0, 0, 0.8);
+  color: white;
+  padding: 8px;
+  text-decoration: none;
+  z-index: 1000;
+  border-radius: 4px;
+}
+
+.skip-link:focus {
+  top: 6px;
 }
 
 /* Reduced motion support */
