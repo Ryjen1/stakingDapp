@@ -136,6 +136,7 @@ export const EnhancedInput = forwardRef<HTMLInputElement, EnhancedInputProps>(
               error ? errorId : helpText ? helpTextId : undefined
             }
             aria-invalid={!!error}
+            aria-required={props.required || false}
             {...props}
           />
 
