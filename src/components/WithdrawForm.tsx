@@ -3,6 +3,7 @@ import { useWriteContract, useAccount, useWaitForTransactionReceipt, useReadCont
 import { stakingContractAddress, stakingContractABI } from '../lib/contracts';
 import { ethers } from 'ethers';
 import { useNotification } from './NotificationProvider';
+import { Tooltip, HelpIcon, InfoCard } from './ui';
 
 export function WithdrawForm() {
   const { address } = useAccount();
@@ -58,6 +59,29 @@ export function WithdrawForm() {
 
   return (
     <div className="space-y-4">
+      {/* Withdrawal Information */}
+      <InfoCard
+        title="Understanding Withdrawals"
+        description={
+          <div className="space-y-2">
+            <p>Withdraw allows you to retrieve your staked HAPG tokens from the protocol.</p>
+            <div className="text-xs space-y-1">
+              <p>• <strong>Process:</strong> Get your staked tokens back to your wallet</p>
+              <p>• <strong>Timing:</strong> Withdrawals are processed immediately</p>
+              <p>• <strong>Gas Fees:</strong> Estimated 0.001-0.003 ETH for transaction</p>
+              <p>• <strong>Rewards:</strong> Any unclaimed rewards will remain in the protocol</p>
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mt-2">
+              <p className="text-xs text-blue-700 font-medium">💡 Tip: Consider claiming rewards before withdrawing to maximize your earnings.</p>
+            </div>
+          </div>
+        }
+        variant="info"
+        helpContent="You can withdraw any amount up to your total staked tokens. Remember to claim any earned rewards first."
+        collapsible={true}
+        defaultExpanded={false}
+      />
+
       {/* Staked Amount Display */}
       <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4">
         <p className="text-sm text-blue-800">
@@ -66,8 +90,14 @@ export function WithdrawForm() {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Amount to Withdraw
+        <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center space-x-2">
+          <span>Amount to Withdraw</span>
+          <HelpIcon
+            content="Enter the amount of HAPG tokens you want to withdraw from staking. You can withdraw up to your total staked amount."
+            position="right"
+            variant="subtle"
+            size="sm"
+          />
         </label>
         <input
           type="number"
@@ -77,23 +107,25 @@ export function WithdrawForm() {
           className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 bg-white font-medium"
         />
       </div>
-      <button
-        onClick={handleWithdraw}
-        disabled={!address || !amount || isWithdrawLoading || ethers.parseEther(amount || '0') > stakedAmount}
-        className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-6 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed border-2 border-blue-500/30 btn-crystal-primary btn-glow-blue btn-ripple shadow-crystal"
-      >
-        {isWithdrawLoading ? (
-          <div className="flex items-center justify-center">
-            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Withdrawing...
-          </div>
-        ) : (
-          'Withdraw Tokens'
-        )}
-      </button>
+      <Tooltip content="Get your staked tokens back">
+        <button
+          onClick={handleWithdraw}
+          disabled={!address || !amount || isWithdrawLoading || ethers.parseEther(amount || '0') > stakedAmount}
+          className="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white font-semibold py-3 px-6 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed border-2 border-blue-500/30 btn-crystal-primary btn-glow-blue btn-ripple shadow-crystal"
+        >
+          {isWithdrawLoading ? (
+            <div className="flex items-center justify-center">
+              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Withdrawing...
+            </div>
+          ) : (
+            'Withdraw Tokens'
+          )}
+        </button>
+      </Tooltip>
     </div>
   );
 }
