@@ -4,12 +4,14 @@ import { testTokenAddress, testTokenABI } from '../lib/contracts';
 import { ethers } from 'ethers';
 import { useNotification } from './NotificationProvider';
 import { Tooltip, HelpIcon, InfoCard } from './ui';
+import { StepIndicator, mintingSteps, ProgressBar, TransactionProgressBar, SkeletonLoader, CircularProgress } from './ui/index';
 
 export function MintTokens() {
   const { address } = useAccount();
   const [amount, setAmount] = useState('100');
   const [timeUntilNextMint, setTimeUntilNextMint] = useState(0);
   const [canMint, setCanMint] = useState(false);
+  const [isMinting, setIsMinting] = useState(false);
   const { showSuccess, showError } = useNotification();
 
   const { writeContractAsync: mint, data: mintTxHash } = useWriteContract();
@@ -18,8 +20,8 @@ export function MintTokens() {
     hash: mintTxHash,
   });
 
-  // Check user's token balance
-  const { data: balance } = useReadContract({
+  // Check user's token balance with loading state
+  const { data: balance, isLoading: isBalanceLoading } = useReadContract({
     address: testTokenAddress,
     abi: testTokenABI,
     functionName: 'balanceOf',
@@ -74,6 +76,8 @@ export function MintTokens() {
     }
 
     try {
+      setIsMinting(true);
+      
       await mint({
         address: testTokenAddress,
         abi: testTokenABI,
@@ -86,9 +90,11 @@ export function MintTokens() {
       localStorage.setItem(lastMintKey, Date.now().toString());
 
       setAmount('100'); // Reset to default
+      setIsMinting(false);
       showSuccess('Tokens Minted!', `Successfully minted ${amount} HAPG tokens!`);
     } catch (error) {
       console.error('Mint failed:', error);
+      setIsMinting(false);
       showError('Mint Failed', error instanceof Error ? error.message : 'Mint failed. Please try again.');
     }
   };
@@ -99,6 +105,14 @@ export function MintTokens() {
     const seconds = Math.floor((milliseconds % (1000 * 60)) / 1000);
     return `${hours}h ${minutes}m ${seconds}s`;
   };
+
+  // Calculate cooldown progress
+  const cooldownProgress = timeUntilNextMint > 0 
+    ? ((24 * 60 * 60 * 1000 - timeUntilNextMint) / (24 * 60 * 60 * 1000)) * 100 
+    : 100;
+
+  // Get step indicator data
+  const steps = mintingSteps(isMinting);
 
   return (
     <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
@@ -143,15 +157,41 @@ export function MintTokens() {
         defaultExpanded={false}
       />
 
-      {address && (
+      {/* Progress Step Indicator */}
+      {isMinting && (
+        <div className="mb-4 crystal-glass rounded-2xl p-4">
+          <StepIndicator
+            steps={steps}
+            variant="horizontal"
+            showConnectors={true}
+          />
+        </div>
+      )}
+
+      {/* Transaction Progress Bar */}
+      {(isMinting || isMintLoading) && (
+        <div className="mb-4">
+          <TransactionProgressBar
+            status="processing"
+            message="Minting your test tokens..."
+          />
+        </div>
+      )}
+
+      {/* Balance Display */}
+      {isBalanceLoading ? (
+        <div className="mb-4 p-3 bg-white rounded-lg border">
+          <SkeletonLoader variant="text" width="60%" />
+        </div>
+      ) : address && balance ? (
         <div className="mb-4 p-3 bg-white rounded-lg border">
           <p className="text-sm text-gray-600">
             Your Balance: <span className="font-semibold text-purple-600">
-              {balance ? parseFloat(ethers.formatEther(balance as bigint)).toFixed(2) : '0.00'} HAPG
+              {parseFloat(ethers.formatEther(balance as bigint)).toFixed(2)} HAPG
             </span>
           </p>
         </div>
-      )}
+      ) : null}
 
       <div className="space-y-4">
         <div>
@@ -180,38 +220,95 @@ export function MintTokens() {
             placeholder="100"
             min="1"
             max="100"
-            className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 bg-white font-medium"
+            disabled={isMinting}
+            className="w-full px-4 py-3 border border-gray-300 rounded-2xl focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-200 text-gray-900 placeholder-gray-500 bg-white font-medium disabled:opacity-50"
           />
+          
+          {/* Progress bar for mint amount */}
+          {amount && (
+            <div className="mt-2">
+              <ProgressBar
+                value={Math.min((parseFloat(amount) / 100) * 100, 100)}
+                label={`${amount} tokens (${parseFloat(amount)}% of max)`}
+                variant={parseFloat(amount) <= 100 ? 'success' : 'danger'}
+                size="sm"
+                showPercentage={false}
+              />
+            </div>
+          )}
+          
           <p className="text-xs text-gray-500 mt-1">
             💡 Rate limit: Once per 24 hours, maximum 100 tokens
           </p>
         </div>
 
+        {/* Cooldown Timer with Progress */}
         {!canMint && timeUntilNextMint > 0 && (
-          <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
-            <div className="flex items-center">
-              <svg className="w-5 h-5 text-amber-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <div>
-                <p className="text-sm font-medium text-amber-800">
-                  Cooldown Active
-                </p>
-                <p className="text-sm text-amber-700">
-                  Next mint available in: {formatTime(timeUntilNextMint)}
-                </p>
+          <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <svg className="w-5 h-5 text-amber-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <p className="text-sm font-medium text-amber-800">
+                    Cooldown Active
+                  </p>
+                  <p className="text-sm text-amber-700">
+                    Next mint available in: {formatTime(timeUntilNextMint)}
+                  </p>
+                </div>
               </div>
+              <CircularProgress
+                value={cooldownProgress}
+                size={50}
+                strokeWidth={4}
+                variant="warning"
+                showLabel={false}
+              />
             </div>
+            
+            {/* Cooldown progress bar */}
+            <ProgressBar
+              value={cooldownProgress}
+              label="Time until next mint"
+              variant="warning"
+              size="sm"
+              animated={true}
+            />
           </div>
         )}
 
-        <Tooltip content="Get test tokens for the demo">
+        {/* Rate limit progress for minting frequency */}
+        {canMint && (
+          <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium text-green-800">Ready to mint!</span>
+              <CircularProgress
+                value={100}
+                size={30}
+                strokeWidth={3}
+                variant="success"
+                showLabel={false}
+              />
+            </div>
+            <ProgressBar
+              value={100}
+              label="Mint available"
+              variant="success"
+              size="sm"
+              animated={true}
+            />
+          </div>
+        )}
+
+        <Tooltip content={isMinting ? "Creating your test tokens..." : "Get test tokens for the demo"}>
           <button
             onClick={handleMint}
-            disabled={!address || !amount || !canMint || isMintLoading || parseFloat(amount) > 100}
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed border-2 border-purple-500/30 btn-crystal-primary btn-glow-purple btn-ripple shadow-crystal"
+            disabled={!address || !amount || !canMint || isMintLoading || isMinting || parseFloat(amount) > 100}
+            className={`w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-6 rounded-2xl disabled:opacity-50 disabled:cursor-not-allowed border-2 border-purple-500/30 btn-crystal-primary btn-glow-purple btn-ripple shadow-crystal ${(isMinting || isMintLoading) ? 'opacity-75' : ''}`}
           >
-            {isMintLoading ? (
+            {isMinting || isMintLoading ? (
               <div className="flex items-center justify-center">
                 <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

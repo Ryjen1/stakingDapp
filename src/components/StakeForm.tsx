@@ -4,18 +4,20 @@ import { stakingContractAddress, stakingContractABI, testTokenAddress, testToken
 import { ethers } from 'ethers';
 import { useNotification } from './NotificationProvider';
 import { Tooltip, HelpIcon, InfoCard } from './ui';
+import { StepIndicator, stakingSteps, ProgressBar, TransactionProgressBar, SkeletonLoader } from './ui';
 
 export function StakeForm() {
   const { address } = useAccount();
   const [amount, setAmount] = useState('');
   const [step, setStep] = useState<'idle' | 'approving' | 'staking'>('idle');
+  const [isLoading, setIsLoading] = useState(false);
   const { showSuccess, showError } = useNotification();
 
   // Use the test token address directly
   const stakingToken = testTokenAddress;
 
-  // Check user's token balance
-  const { data: userBalance } = useReadContract({
+  // Check user's token balance with loading state
+  const { data: userBalance, isLoading: isBalanceLoading } = useReadContract({
     address: stakingToken,
     abi: testTokenABI,
     functionName: 'balanceOf',
@@ -23,11 +25,10 @@ export function StakeForm() {
     query: {
       enabled: !!address,
     },
-  }) as { data: bigint | undefined };
+  }) as { data: bigint | undefined; isLoading: boolean };
 
   const { writeContractAsync: approve } = useWriteContract();
   const { writeContractAsync: stake } = useWriteContract();
-
 
   const handleStake = async () => {
     if (!amount || !stakingToken || !address) return;
@@ -47,6 +48,7 @@ export function StakeForm() {
     }
 
     try {
+      setIsLoading(true);
       setStep('approving');
 
       // First, approve the contract to spend the token
@@ -68,15 +70,20 @@ export function StakeForm() {
       });
 
       setStep('idle');
+      setIsLoading(false);
       setAmount('');
       showSuccess('Staking Successful!', `Successfully staked ${amount} HAPG tokens!`);
 
     } catch (error: unknown) {
       console.error('Transaction failed:', error);
       setStep('idle');
+      setIsLoading(false);
       showError('Transaction Failed', error instanceof Error ? error.message : 'Transaction failed. Please try again.');
     }
   };
+
+  // Get step indicator data
+  const steps = stakingSteps(step);
 
   return (
     <div className="space-y-4">
@@ -103,14 +110,38 @@ export function StakeForm() {
         defaultExpanded={true}
       />
 
+      {/* Progress Step Indicator */}
+      {isLoading && (
+        <div className="crystal-glass rounded-2xl p-4">
+          <StepIndicator
+            steps={steps}
+            variant="horizontal"
+            size="md"
+            showConnectors={true}
+          />
+        </div>
+      )}
+
+      {/* Transaction Progress Bar */}
+      {isLoading && (
+        <TransactionProgressBar
+          status={step === 'approving' ? 'confirming' : 'processing'}
+          message={step === 'approving' ? 'Confirming token approval...' : 'Staking your tokens...'}
+        />
+      )}
+
       {/* Balance Display */}
-      {userBalance && (
+      {isBalanceLoading ? (
+        <div className="border rounded-2xl p-4 crystal-glass">
+          <SkeletonLoader variant="text" width="60%" />
+        </div>
+      ) : userBalance ? (
         <div className="border rounded-2xl p-4 crystal-glass">
           <p className="text-sm" style={{ color: 'var(--crystal-accent-blue)' }}>
             <span className="font-medium">Available Balance:</span> {parseFloat(ethers.formatEther(userBalance)).toFixed(2)} HAPG tokens
           </p>
         </div>
-      )}
+      ) : null}
 
       <div>
         <label className="block text-sm font-medium mb-2 flex items-center space-x-2" style={{ color: 'var(--crystal-text-primary)' }}>
@@ -128,31 +159,38 @@ export function StakeForm() {
           onChange={(e) => setAmount(e.target.value)}
           placeholder="50.00"
           min="50"
+          disabled={isLoading}
           className="w-full px-4 py-3 crystal-input"
           style={{ color: 'var(--crystal-text-primary)' }}
         />
+        
+        {/* Progress bar for stake amount validation */}
+        {amount && (
+          <div className="mt-2">
+            <ProgressBar
+              value={Math.min((parseFloat(amount) / 1000) * 100, 100)}
+              label={`${parseFloat(amount || '0').toFixed(2)} HAPG tokens`}
+              variant={parseFloat(amount) >= 50 ? 'success' : 'warning'}
+              size="sm"
+              showPercentage={false}
+            />
+          </div>
+        )}
       </div>
-      <Tooltip content="Earn rewards by locking your tokens">
+      
+      <Tooltip content={isLoading ? 'Transaction in progress...' : 'Earn rewards by locking your tokens'}>
         <button
           onClick={handleStake}
-          disabled={!address || !amount || step !== 'idle' || !userBalance || ethers.parseEther(amount || '0') > userBalance || parseFloat(amount || '0') < 50}
-          className="w-full btn-crystal-success btn-glow-emerald btn-ripple"
+          disabled={!address || !amount || step !== 'idle' || !userBalance || ethers.parseEther(amount || '0') > userBalance || parseFloat(amount || '0') < 50 || isLoading}
+          className={`w-full btn-crystal-success btn-glow-emerald btn-ripple ${isLoading ? 'opacity-75' : ''}`}
         >
-          {step === 'approving' ? (
+          {isLoading ? (
             <div className="flex items-center justify-center">
               <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Approving Token...
-            </div>
-          ) : step === 'staking' ? (
-            <div className="flex items-center justify-center">
-              <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              Staking Tokens...
+              {step === 'approving' ? 'Approving Token...' : 'Staking Tokens...'}
             </div>
           ) : (
             'Stake Tokens'
