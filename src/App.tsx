@@ -10,6 +10,8 @@ import { SubgraphStats } from './components/SubgraphStats';
 import { NotificationProvider, useNotification } from './components/NotificationProvider';
 import { NotificationContainer } from './components/ui/NotificationToast';
 import { NotificationTest } from './components/NotificationTest';
+import { PWAService } from './components/PWAService';
+import { PWAStatusIndicator } from './components/PWAStatusIndicator';
 
 // Inner component that uses the notification hook
 const HomeContent = () => {
@@ -21,6 +23,8 @@ const HomeContent = () => {
         notifications={notifications} 
         onDismiss={dismissNotification} 
       />
+      <PWAService />
+      <PWAStatusIndicator />
       {/* Enhanced decorative background elements with crystal colors */}
       <div className="absolute top-0 left-0 w-full h-full crystal-noise">
         <div className="absolute top-20 left-10 w-32 h-32 rounded-full opacity-20 blur-xl animate-pulse" 

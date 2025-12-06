@@ -7,6 +7,13 @@ import "./styles/button-animations.css";
 import App from "./App.tsx";
 import { Providers } from "./components/Providers.tsx";
 
+// Initialize PWA services
+import './services/backgroundSync';
+import { pushNotifications } from './services/pushNotifications';
+
+// Request notification permission on app start
+pushNotifications.requestPermission();
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Providers>
