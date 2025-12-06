@@ -1,26 +1,37 @@
 import { useReadContract } from 'wagmi';
 import { stakingContractAddress, stakingContractABI } from '../lib/contracts';
 import { ethers } from 'ethers';
-import { HelpIcon, InfoCard } from './ui';
+import { HelpIcon, InfoCard, CardLoader } from './ui';
 
 export function ProtocolStats() {
-  const { data: totalStaked } = useReadContract({
+  const { data: totalStaked, isLoading: isLoadingTotalStaked } = useReadContract({
     address: stakingContractAddress,
     abi: stakingContractABI,
     functionName: 'totalStaked',
   });
 
-  const { data: currentRewardRate } = useReadContract({
+  const { data: currentRewardRate, isLoading: isLoadingRewardRate } = useReadContract({
     address: stakingContractAddress,
     abi: stakingContractABI,
     functionName: 'currentRewardRate',
   });
 
-  const { data: totalRewards } = useReadContract({
+  const { data: totalRewards, isLoading: isLoadingTotalRewards } = useReadContract({
     address: stakingContractAddress,
     abi: stakingContractABI,
     functionName: 'getTotalRewards',
   });
+
+  const isLoading = isLoadingTotalStaked || isLoadingRewardRate || isLoadingTotalRewards;
+
+  // Show loading state while fetching data
+  if (isLoading) {
+    return (
+      <div className="space-y-8">
+        <CardLoader message="Loading protocol statistics..." />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-8">
