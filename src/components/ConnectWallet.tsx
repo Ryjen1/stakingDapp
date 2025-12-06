@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useAppKit, useAppKitState } from '@reown/appkit/react';
 import { useAccount } from 'wagmi';
-import { HelpIcon, WalletNotConnectedMessage, WalletConnectionTimeoutMessage, UnsupportedWalletMessage } from './ui';
+import { HelpIcon, WalletNotConnectedMessage, WalletConnectionTimeoutMessage, UnsupportedWalletMessage, ButtonSpinner } from './ui';
 import { useErrorHandler } from '../hooks/useErrorHandler';
 
 export function ConnectWallet() {
@@ -122,7 +122,14 @@ export function ConnectWallet() {
             disabled={isConnecting}
             className={`bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium btn-crystal-secondary btn-glow-blue btn-ripple ${isConnecting ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {isConnecting ? 'Connecting...' : 'Connect Wallet'}
+            {isConnecting ? (
+              <span className="flex items-center">
+                <ButtonSpinner color="white" />
+                Connecting...
+              </span>
+            ) : (
+              'Connect Wallet'
+            )}
           </button>
         </HelpIcon>
       </div>
