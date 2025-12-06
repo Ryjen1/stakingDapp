@@ -5,6 +5,15 @@ export { InfoCard } from './InfoCard';
 export { NotificationToast } from './NotificationToast';
 export { ErrorMessage, WalletNotConnectedMessage, InsufficientFundsMessage, NetworkErrorMessage, TransactionFailedMessage, MinimumAmountMessage } from './ErrorMessage';
 
+// Loading Spinner Components
+export { 
+  LoadingSpinner, 
+  ButtonSpinner, 
+  PageLoader, 
+  CardLoader, 
+  InlineLoader 
+} from './LoadingSpinner';
+
 // Progress Indicator Components
 export { ProgressBar, TransactionProgressBar, CircularProgress } from './ProgressBar';
 export { StepIndicator } from './StepIndicator';
